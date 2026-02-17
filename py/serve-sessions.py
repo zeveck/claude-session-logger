@@ -87,45 +87,38 @@ HTML_TEMPLATE = """\
   nav a:hover {{ text-decoration: underline; }}
   .theme-toggle {{
     background: none;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    padding: 0.3rem 0.6rem;
+    border: none;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 1.2rem;
+    padding: 0.2rem;
+    line-height: 1;
   }}
-  html[data-theme="dark"] .theme-toggle {{ color: #e6edf3; }}
-  html[data-theme="light"] .theme-toggle {{ color: #1f2328; border-color: #d0d7de; }}
   #content {{ display: none; }}
 </style>
 </head>
 <body>
 <nav>
   <a href="/">&larr; All sessions</a>
-  <button class="theme-toggle" onclick="toggleTheme()">light/dark</button>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">&#9788;</button>
 </nav>
 <div id="raw" class="markdown-body"></div>
 <pre id="content">{content}</pre>
 <script>
   const md = document.getElementById('content').textContent;
   document.getElementById('raw').innerHTML = marked.parse(md);
-  function toggleTheme() {{
-    const html = document.documentElement;
-    const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
-    html.dataset.theme = next;
-    localStorage.setItem('cc-theme', next);
-    const css = document.getElementById('md-css');
-    css.href = next === 'dark'
+  function setTheme(theme) {{
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('cc-theme', theme);
+    document.querySelector('.theme-toggle').textContent = theme === 'dark' ? '\u263c' : '\u263d';
+    var css = document.getElementById('md-css');
+    css.href = theme === 'dark'
       ? 'https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown-dark.min.css'
       : 'https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown-light.min.css';
   }}
-  (function() {{
-    const saved = localStorage.getItem('cc-theme');
-    if (saved && saved !== 'dark') {{
-      document.documentElement.dataset.theme = saved;
-      document.getElementById('md-css').href =
-        'https://cdn.jsdelivr.net/npm/github-markdown-css@5/github-markdown-light.min.css';
-    }}
-  }})();
+  function toggleTheme() {{
+    setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  }}
+  setTheme(localStorage.getItem('cc-theme') || 'dark');
 </script>
 </body>
 </html>
@@ -165,14 +158,12 @@ INDEX_TEMPLATE = """\
   h1 {{ margin: 0; }}
   .theme-toggle {{
     background: none;
-    border: 1px solid #30363d;
-    border-radius: 6px;
-    padding: 0.3rem 0.6rem;
+    border: none;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 1.2rem;
+    padding: 0.2rem;
+    line-height: 1;
   }}
-  html[data-theme="dark"] .theme-toggle {{ color: #e6edf3; }}
-  html[data-theme="light"] .theme-toggle {{ color: #1f2328; border-color: #d0d7de; }}
   a {{ color: #58a6ff; text-decoration: none; }}
   a:hover {{ text-decoration: underline; }}
   .session {{
@@ -210,20 +201,19 @@ INDEX_TEMPLATE = """\
 <body>
 <header>
   <h1>cc-session-logs</h1>
-  <button class="theme-toggle" onclick="toggleTheme()">light/dark</button>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">&#9788;</button>
 </header>
 {entries}
 <script>
-  function toggleTheme() {{
-    const html = document.documentElement;
-    const next = html.dataset.theme === 'dark' ? 'light' : 'dark';
-    html.dataset.theme = next;
-    localStorage.setItem('cc-theme', next);
+  function setTheme(theme) {{
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('cc-theme', theme);
+    document.querySelector('.theme-toggle').textContent = theme === 'dark' ? '\u263c' : '\u263d';
   }}
-  (function() {{
-    const saved = localStorage.getItem('cc-theme');
-    if (saved && saved !== 'dark') document.documentElement.dataset.theme = saved;
-  }})();
+  function toggleTheme() {{
+    setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  }}
+  setTheme(localStorage.getItem('cc-theme') || 'dark');
   document.querySelectorAll('.session').forEach(function(el) {{
     el.addEventListener('click', function(e) {{
       if (e.target.tagName === 'A') return;
