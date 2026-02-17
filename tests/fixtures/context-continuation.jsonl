@@ -1,0 +1,2 @@
+{"type":"user","message":{"role":"user","content":"This session is being continued from a previous conversation that ran out of context.\n\nSummary of earlier work:\n- Fixed bug in login flow\n- Added tests\n- Deployed to staging"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"I'll continue where we left off."}]},"timestamp":"2026-02-16T23:56:01.000Z"}

@@ -1,0 +1,4 @@
+{"type":"user","message":{"role":"user","content":"Check two files"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"tool_use","id":"tu_01","name":"Read","input":{"file_path":"/tmp/a.txt"}},{"type":"tool_use","id":"tu_02","name":"Read","input":{"file_path":"/tmp/b.txt"}}]},"timestamp":"2026-02-16T23:56:01.000Z"}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"tu_01","content":"content of a"},{"type":"tool_result","tool_use_id":"tu_02","content":"content of b"}]},"timestamp":"2026-02-16T23:56:02.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"Both files read successfully."}]},"timestamp":"2026-02-16T23:56:03.000Z"}

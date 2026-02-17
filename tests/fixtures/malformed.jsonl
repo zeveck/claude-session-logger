@@ -1,0 +1,6 @@
+this is not json at all
+{"type":"user","message":{"role":"user","content":"Valid message"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{broken json here
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"Valid response"}]},"timestamp":"2026-02-16T23:56:01.000Z"}
+
+{"also":"broken

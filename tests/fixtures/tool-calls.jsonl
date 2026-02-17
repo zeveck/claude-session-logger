@@ -1,0 +1,4 @@
+{"type":"user","message":{"role":"user","content":"Read my config file"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"Let me read that file."},{"type":"tool_use","id":"tu_01","name":"Read","input":{"file_path":"/tmp/config.json"}}]},"timestamp":"2026-02-16T23:56:01.000Z"}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"tu_01","content":"{ \"key\": \"value\" }"}]},"timestamp":"2026-02-16T23:56:02.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"The config file contains a single key-value pair."}]},"timestamp":"2026-02-16T23:56:03.000Z"}

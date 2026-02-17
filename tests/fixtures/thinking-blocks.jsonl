@@ -1,0 +1,2 @@
+{"type":"user","message":{"role":"user","content":"What is 2+2?"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"thinking","thinking":"Let me calculate 2+2. That equals 4."},{"type":"text","text":"2+2 = 4"}]},"timestamp":"2026-02-16T23:56:01.000Z"}

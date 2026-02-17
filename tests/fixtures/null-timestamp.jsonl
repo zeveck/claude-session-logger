@@ -1,0 +1,4 @@
+{"type":"file-history-snapshot","timestamp":null,"isMeta":true}
+{"type":"file-history-snapshot","timestamp":null,"isMeta":true}
+{"type":"user","message":{"role":"user","content":"Hello"},"timestamp":"2026-02-16T23:56:30.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"Hi there!"}]},"timestamp":"2026-02-16T23:56:31.000Z"}

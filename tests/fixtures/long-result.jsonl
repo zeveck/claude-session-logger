@@ -1,0 +1,4 @@
+{"type":"user","message":{"role":"user","content":"List my files"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"tool_use","id":"tu_01","name":"Bash","input":{"command":"ls -la"}}]},"timestamp":"2026-02-16T23:56:01.000Z"}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"tu_01","content":"total 32\ndrwxr-xr-x 2 user user 4096 Feb 16 18:00 .\ndrwxr-xr-x 3 user user 4096 Feb 16 18:00 ..\n-rw-r--r-- 1 user user  100 Feb 16 18:00 file1.txt\n-rw-r--r-- 1 user user  200 Feb 16 18:00 file2.txt\n-rw-r--r-- 1 user user  300 Feb 16 18:00 file3.txt"}]},"timestamp":"2026-02-16T23:56:02.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"You have three files in the directory."}]},"timestamp":"2026-02-16T23:56:03.000Z"}

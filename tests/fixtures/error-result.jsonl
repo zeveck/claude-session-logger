@@ -1,0 +1,4 @@
+{"type":"user","message":{"role":"user","content":"Run the failing command"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"tool_use","id":"tu_01","name":"Bash","input":{"command":"cat nonexistent.txt"}}]},"timestamp":"2026-02-16T23:56:01.000Z"}
+{"type":"user","message":{"role":"user","content":[{"type":"tool_result","tool_use_id":"tu_01","content":"<tool_use_error>cat: nonexistent.txt: No such file or directory</tool_use_error>","is_error":true}]},"timestamp":"2026-02-16T23:56:02.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"The file doesn't exist."}]},"timestamp":"2026-02-16T23:56:03.000Z"}

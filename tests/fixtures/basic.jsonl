@@ -1,0 +1,4 @@
+{"type":"user","message":{"role":"user","content":"Hello, how are you?"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"I'm doing well, thanks for asking!"}]},"timestamp":"2026-02-16T23:56:01.000Z"}
+{"type":"user","message":{"role":"user","content":"What can you help me with?"},"timestamp":"2026-02-16T23:56:10.000Z"}
+{"type":"assistant","message":{"id":"msg_02","role":"assistant","content":[{"type":"text","text":"I can help with software engineering tasks like debugging, writing code, and more."}]},"timestamp":"2026-02-16T23:56:11.000Z"}

@@ -1,0 +1,6 @@
+{"type":"file-history-snapshot","timestamp":null,"isMeta":true}
+{"type":"queue-operation","data":{},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"progress","data":{},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"system","data":{},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"user","message":{"role":"user","content":"Only real message"},"timestamp":"2026-02-16T23:56:00.000Z"}
+{"type":"assistant","message":{"id":"msg_01","role":"assistant","content":[{"type":"text","text":"Only real response"}]},"timestamp":"2026-02-16T23:56:01.000Z"}

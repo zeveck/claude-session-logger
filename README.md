@@ -74,6 +74,36 @@ const TZ = process.env.TZ || "America/New_York";
 
 Logs write to `.claude/logs/` relative to the project root.
 
+## Tests
+
+Run the full test suite (requires both python3 and node):
+
+```
+cd /path/to/claude-session-logger
+./tests/run_tests.sh
+```
+
+Run individual test modules:
+
+```
+python3 tests/test_converter.py     # converter (JSONL → markdown)
+python3 tests/test_hooks.py         # hook scripts (stop-log, subagent-stop-log)
+python3 tests/test_installer.py     # installers (install.py, install.js)
+```
+
+Test a single runtime:
+
+```
+python3 tests/test_converter.py --py-only
+python3 tests/test_converter.py --js-only
+```
+
+Verbose output:
+
+```
+python3 tests/test_converter.py -v
+```
+
 ## Uninstall
 
 Remove the hook scripts from `.claude/hooks/` and the `Stop` and `SubagentStop` entries from `.claude/settings.json`.
