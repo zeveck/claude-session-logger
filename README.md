@@ -6,9 +6,9 @@ Automatically converts Claude Code JSONL transcripts into readable markdown logs
 
 Clone this repo, then run the installer from your project directory:
 
-```bash
+```
 cd your-project
-bash /path/to/claude-session-logger/install.sh
+python3 /path/to/claude-session-logger/install.py
 ```
 
 The installer will:
@@ -20,8 +20,7 @@ Restart Claude Code after installing.
 
 ### Requirements
 
-- **python3** — runs the JSONL→markdown converter, settings merge, and JSON parsing
-- **bash** — hook scripts run in bash (Git Bash or WSL on Windows)
+- **python3** (3.9+) — the only dependency
 
 ## Output
 
@@ -48,10 +47,10 @@ The body renders user prompts, assistant responses, tool calls with results, and
 
 ### Timezone
 
-Set during installation. To change later, edit the `TZ` line in both `.claude/hooks/stop-log.sh` and `.claude/hooks/subagent-stop-log.sh`:
+Set during installation. To change later, edit the `TZ` line in both `.claude/hooks/stop-log.py` and `.claude/hooks/subagent-stop-log.py`:
 
-```bash
-export TZ="${TZ:-America/New_York}"
+```python
+TZ = os.environ.get("TZ", "America/New_York")
 ```
 
 ### Log directory
@@ -60,8 +59,8 @@ Logs write to `.claude/logs/` relative to the project root. This is not configur
 
 ## Uninstall
 
-```bash
-rm .claude/hooks/stop-log.sh .claude/hooks/subagent-stop-log.sh .claude/hooks/log-converter.py
+```
+rm .claude/hooks/stop-log.py .claude/hooks/subagent-stop-log.py .claude/hooks/log-converter.py
 ```
 
 Then remove the `Stop` and `SubagentStop` entries from `.claude/settings.json`.
