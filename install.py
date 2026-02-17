@@ -15,7 +15,8 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 HOOKS_DIR = os.path.join(".claude", "hooks")
 SETTINGS_FILE = os.path.join(".claude", "settings.json")
 
-HOOK_SCRIPTS = ["stop-log.py", "subagent-stop-log.py", "log-converter.py", "serve.py"]
+HOOK_SCRIPTS = ["stop-log.py", "subagent-stop-log.py", "log-converter.py"]
+SERVE_SCRIPT = "serve-sessions.py"
 
 HOOKS_CONFIG = {
     "Stop": [{"hooks": [{"type": "command", "command": "python3 .claude/hooks/stop-log.py"}]}],
@@ -87,7 +88,14 @@ def main():
         with open(dst, "w") as f:
             f.write(content)
 
-    info(f"Installed scripts to {HOOKS_DIR}/")
+    info(f"Installed hook scripts to {HOOKS_DIR}/")
+
+    # --- Copy serve script to .claude/ ---
+
+    serve_src = os.path.join(SCRIPT_DIR, "py", SERVE_SCRIPT)
+    serve_dst = os.path.join(".claude", SERVE_SCRIPT)
+    shutil.copy2(serve_src, serve_dst)
+    info(f"Installed {SERVE_SCRIPT} to .claude/")
 
     # --- Merge settings ---
 
@@ -114,6 +122,9 @@ def main():
     print()
     print("Done! Session logs will appear in .claude/logs/ after each turn.")
     print("Restart Claude Code to pick up the new hooks.")
+    print()
+    print("To browse logs in a browser:")
+    print(f"  python3 .claude/{SERVE_SCRIPT}")
     print()
 
 

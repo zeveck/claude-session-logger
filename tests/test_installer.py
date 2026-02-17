@@ -66,7 +66,7 @@ class InstallerTestBase:
     @property
     def _expected_scripts(self):
         ext = self._ext
-        return [f"stop-log{ext}", f"subagent-stop-log{ext}", f"log-converter{ext}", f"serve{ext}"]
+        return [f"stop-log{ext}", f"subagent-stop-log{ext}", f"log-converter{ext}"]
 
     @property
     def _runtime_cmd(self):
@@ -86,6 +86,16 @@ class InstallerTestBase:
         for script in self._expected_scripts:
             path = os.path.join(hooks_dir, script)
             self.assertTrue(os.path.isfile(path), f"Missing: {script}")
+
+    def test_fresh_install_creates_serve_script(self):
+        """Installer copies serve-sessions script to .claude/."""
+        result = self._run_installer("America/New_York\n")
+
+        self.assertEqual(result.returncode, 0, f"stderr: {result.stderr}")
+
+        serve_name = f"serve-sessions{self._ext}"
+        serve_path = os.path.join(self.tmpdir, ".claude", serve_name)
+        self.assertTrue(os.path.isfile(serve_path), f"Missing: .claude/{serve_name}")
 
     def test_fresh_install_creates_settings(self):
         """Installer creates .claude/settings.json with hook config."""

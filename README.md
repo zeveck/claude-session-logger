@@ -22,6 +22,7 @@ node /path/to/cc-session-logger/install.js
 
 Both installers:
 - Copy hook scripts to `.claude/hooks/`
+- Copy serve script to `.claude/serve-sessions.{py,js}`
 - Merge hook config into `.claude/settings.json`
 - Prompt for your timezone
 
@@ -76,32 +77,47 @@ Logs write to `.claude/logs/` relative to the project root.
 
 ## Serve
 
-Browse and share your session logs over HTTP. The serve script is copied into your project during installation. Start from your project root:
+Browse and share your session logs over HTTPS. The serve script is copied into your project during installation. Start from your project root:
 
 **Python:**
 
 ```
-python3 .claude/hooks/serve.py
+python3 .claude/serve-sessions.py
 ```
 
 **Node.js:**
 
 ```
-node .claude/hooks/serve.js
+node .claude/serve-sessions.js
 ```
+
+HTTPS is enabled by default with an auto-generated self-signed certificate (requires `openssl`). Certs are stored in `.claude/certs/`.
 
 Options:
 
 ```
---port 8080          # default: 3000
+--port 8443          # default: 9443
 --host 0.0.0.0       # default: 127.0.0.1 (localhost only)
 --dir .claude/logs   # default: .claude/logs
+--http               # use plain HTTP instead of HTTPS
+--cert path/to.pem   # custom TLS certificate
+--key path/to-key.pem # custom TLS private key
 ```
 
 Routes:
-- `/` — index of all sessions
+- `/` — index of all sessions (with optional labels)
 - `/{name}` — rendered HTML (for humans)
 - `/{name}.md` — raw markdown (for machines / another Claude via WebFetch)
+
+### Session labels
+
+Add a label to any session by appending it to the header line:
+
+```markdown
+# Session `abc12345` — 2026-02-17 09:30 — Auth Feature
+```
+
+The label ("Auth Feature") will appear in the index alongside the session entry.
 
 ## Tests
 
@@ -135,7 +151,7 @@ python3 tests/test_converter.py -v
 
 ## Uninstall
 
-Remove the hook scripts from `.claude/hooks/` and the `Stop` and `SubagentStop` entries from `.claude/settings.json`.
+Remove the hook scripts from `.claude/hooks/`, the serve script from `.claude/serve-sessions.*`, and the `Stop` and `SubagentStop` entries from `.claude/settings.json`.
 
 ## License
 

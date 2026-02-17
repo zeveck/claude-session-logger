@@ -15,7 +15,8 @@ const readline = require("readline");
 const SCRIPT_DIR = __dirname;
 const HOOKS_DIR = path.join(".claude", "hooks");
 const SETTINGS_FILE = path.join(".claude", "settings.json");
-const HOOK_SCRIPTS = ["stop-log.js", "subagent-stop-log.js", "log-converter.js", "serve.js"];
+const HOOK_SCRIPTS = ["stop-log.js", "subagent-stop-log.js", "log-converter.js"];
+const SERVE_SCRIPT = "serve-sessions.js";
 
 const HOOKS_CONFIG = {
   Stop: [{ hooks: [{ type: "command", command: "node .claude/hooks/stop-log.js" }] }],
@@ -88,7 +89,14 @@ async function main() {
     fs.writeFileSync(dst, content);
   }
 
-  console.log(`  Installed scripts to ${HOOKS_DIR}/`);
+  console.log(`  Installed hook scripts to ${HOOKS_DIR}/`);
+
+  // --- Copy serve script to .claude/ ---
+
+  const serveSrc = path.join(SCRIPT_DIR, "js", SERVE_SCRIPT);
+  const serveDst = path.join(".claude", SERVE_SCRIPT);
+  fs.copyFileSync(serveSrc, serveDst);
+  console.log(`  Installed ${SERVE_SCRIPT} to .claude/`);
 
   // --- Merge settings ---
 
@@ -112,6 +120,9 @@ async function main() {
   console.log();
   console.log("Done! Session logs will appear in .claude/logs/ after each turn.");
   console.log("Restart Claude Code to pick up the new hooks.");
+  console.log();
+  console.log("To browse logs in a browser:");
+  console.log(`  node .claude/${SERVE_SCRIPT}`);
   console.log();
 
   rl.close();

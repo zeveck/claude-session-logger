@@ -1,27 +1,49 @@
 #!/usr/bin/env python3
-"""Serve session logs over HTTP.
+"""Serve session logs over HTTPS.
 
 Serves .claude/logs/ as browsable, shareable session threads.
 Raw markdown for machines (another Claude via WebFetch), rendered HTML for humans.
+HTTPS with auto-generated self-signed cert by default.
 
 Usage:
-    python3 serve.py                    # localhost:3000
-    python3 serve.py --port 8080        # custom port
-    python3 serve.py --host 0.0.0.0     # expose to network
-    python3 serve.py --dir .claude/logs  # custom log directory
+    python3 serve-sessions.py                      # HTTPS on localhost:9443
+    python3 serve-sessions.py --http               # plain HTTP
+    python3 serve-sessions.py --port 8443          # custom port
+    python3 serve-sessions.py --host 0.0.0.0       # expose to network
+    python3 serve-sessions.py --cert C --key K     # custom cert
+    python3 serve-sessions.py --dir .claude/logs   # custom log directory
 """
 
 import argparse
 import html
 import os
 import re
+import shutil
+import ssl
+import subprocess
 import sys
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import unquote
 
-DEFAULT_PORT = 3000
+DEFAULT_PORT = 9443
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_DIR = os.path.join(".claude", "logs")
+DEFAULT_CERT_DIR = os.path.join(".claude", "certs")
+CERT_FILE = "localhost.pem"
+KEY_FILE = "localhost-key.pem"
+
+# Strict filename pattern: YYYY-MM-DD-HHMM-{session}[-subagent-{type}-{agent}]
+LOG_NAME_RE = re.compile(
+    r"^(\d{4}-\d{2}-\d{2})-(\d{4})-(\w+?)(?:-subagent-(.+)-(\w+))?$"
+)
+
+# Label regex for first line of log:
+# # Session `abc123` — 2026-02-17 18:56 — My Label
+# # Subagent: Explore `dddd1111` — 2026-02-17 19:00 — My Label
+LABEL_RE = re.compile(
+    r"^#\s+(?:Session|Subagent:\s+\S+)\s+.+?\u2014\s+\d{4}-\d{2}-\d{2}"
+    r"(?:\s+\d{2}:\d{2})?\s*\u2014\s+(.+)$"
+)
 
 HTML_TEMPLATE = """\
 <!DOCTYPE html>
@@ -102,6 +124,7 @@ INDEX_TEMPLATE = """\
   .links {{ font-size: 0.85rem; }}
   .links a {{ margin-left: 1rem; }}
   .subagent {{ opacity: 0.7; font-size: 0.85rem; margin-left: 0.5rem; }}
+  .label {{ color: #8b949e; margin-left: 0.75rem; font-style: italic; }}
   .empty {{ color: #8b949e; font-style: italic; }}
 </style>
 </head>
@@ -114,26 +137,31 @@ INDEX_TEMPLATE = """\
 
 
 def parse_log_name(filename):
-    """Extract metadata from a log filename."""
+    """Extract metadata from a log filename. Returns None if name doesn't match."""
     name = filename.replace(".md", "")
-    # Format: {date}-{HHMM}-{session}[-subagent-{type}-{agent}]
-    # HHMM is optional (older logs don't have it)
-    m = re.match(
-        r"(\d{4}-\d{2}-\d{2})-(?:(\d{4})-)?(\w+?)(?:-subagent-(.+)-(\w+))?$",
-        name,
-    )
+    m = LOG_NAME_RE.match(name)
     if not m:
-        return {"raw": name, "date": "", "time": "", "session": "",
-                "agent_type": None, "agent_id": None}
+        return None
     time_part = m.group(2)
     return {
         "raw": name,
         "date": m.group(1),
-        "time": f"{time_part[:2]}:{time_part[2:]}" if time_part else "",
+        "time": f"{time_part[:2]}:{time_part[2:]}",
         "session": m.group(3),
         "agent_type": m.group(4),
         "agent_id": m.group(5),
     }
+
+
+def read_label(filepath):
+    """Read the first line of a log file and extract an optional label."""
+    try:
+        with open(filepath, "r") as f:
+            first_line = f.readline().rstrip()
+        m = LABEL_RE.match(first_line)
+        return m.group(1).strip() if m else None
+    except (OSError, UnicodeDecodeError):
+        return None
 
 
 def build_index(log_dir):
@@ -144,43 +172,51 @@ def build_index(log_dir):
     except FileNotFoundError:
         files = []
 
-    files.sort(reverse=True)
+    # Filter to only well-formed filenames
+    entries = []
+    for f in files:
+        meta = parse_log_name(f)
+        if meta is not None:
+            entries.append((f, meta))
 
-    if not files:
-        entries = '<p class="empty">No session logs found.</p>'
+    entries.sort(key=lambda x: x[0], reverse=True)
+
+    if not entries:
+        html_entries = '<p class="empty">No session logs found.</p>'
     else:
         parts = []
-        for f in files:
-            meta = parse_log_name(f)
-            name_display = f.replace(".md", "")
-
-            if meta["date"]:
-                date_time = f'{meta["date"]} {meta["time"]}'.strip()
-                label = f'{date_time} &mdash; {meta["session"]}'
-            else:
-                label = meta["raw"]
+        for f, meta in entries:
+            date_time = f'{meta["date"]} {meta["time"]}'
+            label_text = f'{date_time} &mdash; {meta["session"]}'
             if meta["agent_type"]:
-                label += (f'<span class="subagent">'
-                          f'{meta["agent_type"]} {meta["agent_id"] or ""}'
-                          f'</span>')
+                label_text += (f'<span class="subagent">'
+                               f'{meta["agent_type"]} {meta["agent_id"] or ""}'
+                               f'</span>')
+
+            # Check for label in file header
+            file_label = read_label(os.path.join(log_dir, f))
+            if file_label:
+                label_text += (f'<span class="label">'
+                               f'{html.escape(file_label)}'
+                               f'</span>')
 
             slug = f.replace(".md", "")
             parts.append(
                 f'<div class="session">'
-                f'  <span class="session-name">{label}</span>'
+                f'  <span class="session-name">{label_text}</span>'
                 f'  <span class="links">'
                 f'    <a href="/{slug}">view</a>'
                 f'    <a href="/{f}">raw</a>'
                 f'  </span>'
                 f'</div>'
             )
-        entries = "\n".join(parts)
+        html_entries = "\n".join(parts)
 
-    return INDEX_TEMPLATE.format(entries=entries)
+    return INDEX_TEMPLATE.format(entries=html_entries)
 
 
 class LogHandler(BaseHTTPRequestHandler):
-    """HTTP request handler for session logs."""
+    """HTTP(S) request handler for session logs."""
 
     log_dir = DEFAULT_DIR
 
@@ -229,18 +265,63 @@ class LogHandler(BaseHTTPRequestHandler):
         self.wfile.write(encoded)
 
     def log_message(self, fmt, *args):
-        # Quieter logging
         sys.stderr.write(f"  {args[0]} {args[1]}\n")
+
+
+def ensure_cert(cert_dir):
+    """Ensure a self-signed cert exists, generating one if needed.
+
+    Returns (cert_path, key_path) or raises SystemExit on failure.
+    """
+    cert_path = os.path.join(cert_dir, CERT_FILE)
+    key_path = os.path.join(cert_dir, KEY_FILE)
+
+    if os.path.isfile(cert_path) and os.path.isfile(key_path):
+        return cert_path, key_path
+
+    # Try to generate with openssl
+    if not shutil.which("openssl"):
+        print("  [ERROR] No TLS certificate found and openssl is not installed.")
+        print(f"  Either install openssl, provide --cert and --key, or use --http.")
+        sys.exit(1)
+
+    os.makedirs(cert_dir, exist_ok=True)
+    print(f"  Generating self-signed certificate in {cert_dir}/")
+
+    try:
+        subprocess.run(
+            [
+                "openssl", "req", "-x509",
+                "-newkey", "rsa:2048",
+                "-keyout", key_path,
+                "-out", cert_path,
+                "-days", "365",
+                "-nodes",
+                "-subj", "/CN=localhost",
+            ],
+            capture_output=True, check=True,
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"  [ERROR] Failed to generate certificate: {e.stderr.decode()}")
+        sys.exit(1)
+
+    return cert_path, key_path
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Serve session logs over HTTP.",
+        description="Serve session logs over HTTPS.",
     )
     parser.add_argument("--port", type=int, default=DEFAULT_PORT)
     parser.add_argument("--host", default=DEFAULT_HOST)
     parser.add_argument("--dir", default=DEFAULT_DIR,
                         help="Log directory (default: .claude/logs)")
+    parser.add_argument("--http", action="store_true", dest="use_http",
+                        help="Use plain HTTP instead of HTTPS")
+    parser.add_argument("--cert", default=None,
+                        help="Path to TLS certificate file")
+    parser.add_argument("--key", default=None,
+                        help="Path to TLS private key file")
     args = parser.parse_args()
 
     if not os.path.isdir(args.dir):
@@ -251,9 +332,22 @@ def main():
     LogHandler.log_dir = args.dir
 
     server = HTTPServer((args.host, args.port), LogHandler)
-    url = f"http://{args.host}:{args.port}"
-    if args.host == "127.0.0.1":
-        url = f"http://localhost:{args.port}"
+
+    protocol = "http"
+    if not args.use_http:
+        # Set up HTTPS
+        if args.cert and args.key:
+            cert_path, key_path = args.cert, args.key
+        else:
+            cert_path, key_path = ensure_cert(DEFAULT_CERT_DIR)
+
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        context.load_cert_chain(cert_path, key_path)
+        server.socket = context.wrap_socket(server.socket, server_side=True)
+        protocol = "https"
+
+    host_display = "localhost" if args.host == "127.0.0.1" else args.host
+    url = f"{protocol}://{host_display}:{args.port}"
 
     print()
     print(f"  Serving session logs at {url}")
