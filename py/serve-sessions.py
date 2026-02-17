@@ -324,10 +324,7 @@ def main():
                         help="Path to TLS private key file")
     args = parser.parse_args()
 
-    if not os.path.isdir(args.dir):
-        print(f"  Log directory not found: {args.dir}")
-        print("  Run this from your project root, or specify --dir.")
-        sys.exit(1)
+    os.makedirs(args.dir, exist_ok=True)
 
     LogHandler.log_dir = args.dir
 

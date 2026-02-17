@@ -283,11 +283,7 @@ function parseArgs(argv) {
 function main() {
   const args = parseArgs(process.argv);
 
-  if (!fs.existsSync(args.dir)) {
-    console.log(`  Log directory not found: ${args.dir}`);
-    console.log("  Run this from your project root, or specify --dir.");
-    process.exit(1);
-  }
+  fs.mkdirSync(args.dir, { recursive: true });
 
   function handler(req, res) {
     const urlPath = decodeURIComponent(req.url || "/").replace(/^\/+/, "");
