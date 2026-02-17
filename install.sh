@@ -40,13 +40,6 @@ if ! command -v python3 &>/dev/null; then
   error "python3 is required but not found."
 fi
 
-if ! command -v jq &>/dev/null; then
-  warn "jq not found. Settings will need manual configuration."
-  HAS_JQ=false
-else
-  HAS_JQ=true
-fi
-
 # --- Timezone ---
 
 echo "Timezone for log timestamps (e.g. America/New_York, America/Chicago, UTC)"
@@ -81,63 +74,36 @@ info "Installed scripts to $HOOKS_DIR/"
 
 # --- Merge settings ---
 
-HOOKS_CONFIG='{
-  "Stop": [{"hooks": [{"type": "command", "command": ".claude/hooks/stop-log.sh"}]}],
-  "SubagentStop": [{"hooks": [{"type": "command", "command": ".claude/hooks/subagent-stop-log.sh"}]}]
-}'
+mkdir -p .claude
 
-if [ "$HAS_JQ" = true ]; then
-  mkdir -p .claude
+python3 - "$SETTINGS_FILE" <<'PYMERGE'
+import json, sys
 
-  if [ -f "$SETTINGS_FILE" ]; then
-    # Merge hooks into existing settings
-    EXISTING=$(cat "$SETTINGS_FILE")
-    echo "$EXISTING" | jq --argjson hooks "$HOOKS_CONFIG" '.hooks = (.hooks // {}) * $hooks' > "$SETTINGS_FILE"
-    info "Merged hook config into $SETTINGS_FILE"
-  else
-    # Create new settings file
-    echo "$HOOKS_CONFIG" | jq '{hooks: .}' > "$SETTINGS_FILE"
-    info "Created $SETTINGS_FILE"
-  fi
-else
-  if [ -f "$SETTINGS_FILE" ]; then
-    warn "Cannot auto-merge without jq. Add this to $SETTINGS_FILE manually:"
-    echo ""
-    echo '  "hooks": {'
-    echo '    "Stop": [{"hooks": [{"type": "command", "command": ".claude/hooks/stop-log.sh"}]}],'
-    echo '    "SubagentStop": [{"hooks": [{"type": "command", "command": ".claude/hooks/subagent-stop-log.sh"}]}]'
-    echo '  }'
-    echo ""
-  else
-    mkdir -p .claude
-    cat > "$SETTINGS_FILE" <<'SETTINGS'
-{
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/stop-log.sh"
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": ".claude/hooks/subagent-stop-log.sh"
-          }
-        ]
-      }
-    ]
-  }
+settings_path = sys.argv[1]
+hooks_config = {
+    "Stop": [{"hooks": [{"type": "command", "command": ".claude/hooks/stop-log.sh"}]}],
+    "SubagentStop": [{"hooks": [{"type": "command", "command": ".claude/hooks/subagent-stop-log.sh"}]}]
 }
-SETTINGS
-    info "Created $SETTINGS_FILE"
-  fi
+
+try:
+    with open(settings_path, "r") as f:
+        settings = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    settings = {}
+
+existing_hooks = settings.get("hooks", {})
+existing_hooks.update(hooks_config)
+settings["hooks"] = existing_hooks
+
+with open(settings_path, "w") as f:
+    json.dump(settings, f, indent=2)
+    f.write("\n")
+PYMERGE
+
+if [ -f "$SETTINGS_FILE" ]; then
+  info "Updated $SETTINGS_FILE"
+else
+  info "Created $SETTINGS_FILE"
 fi
 
 # --- Done ---

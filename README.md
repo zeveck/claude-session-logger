@@ -4,10 +4,20 @@ Automatically converts Claude Code JSONL transcripts into readable markdown logs
 
 ## Install
 
+Clone this repo, then run the installer from your project directory:
+
+**Linux / macOS / WSL:**
+
 ```bash
-git clone https://github.com/user/claude-session-logger.git
 cd your-project
 bash /path/to/claude-session-logger/install.sh
+```
+
+**Windows (PowerShell):**
+
+```powershell
+cd your-project
+powershell -ExecutionPolicy Bypass -File \path\to\claude-session-logger\install.ps1
 ```
 
 The installer will:
@@ -19,9 +29,9 @@ Restart Claude Code after installing.
 
 ### Requirements
 
-- **python3** — runs the JSONL→markdown converter
-- **jq** — for merging settings (optional; installer falls back to manual instructions)
-- **bash** — Linux/macOS/WSL
+- **python3** — runs the JSONL→markdown converter and settings merge
+- **jq** — used at runtime by the hook scripts to parse JSON input
+- **bash** — hook scripts run in bash (Git Bash or WSL on Windows)
 
 ## Output
 
