@@ -152,6 +152,11 @@ def _escape_html(text):
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def _unescape_html(text):
+    """Unescape HTML entities back to literal characters for markdown output."""
+    return text.replace("&lt;", "<").replace("&gt;", ">").replace("&amp;", "&")
+
+
 def _truncate(text, max_len):
     """Truncate text with ellipsis."""
     if len(text) <= max_len:
@@ -349,7 +354,7 @@ def render_markdown(items):
                     continue
 
                 elif btype == "text":
-                    text = block.get("text", "").strip()
+                    text = _unescape_html(block.get("text", "").strip())
                     if not text:
                         continue
                     if lines and lines[-1] != "":

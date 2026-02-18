@@ -130,6 +130,10 @@ function escapeHtml(text) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+function unescapeHtml(text) {
+  return text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+}
+
 function truncate(text, maxLen) {
   if (text.length <= maxLen) return text;
   return text.slice(0, maxLen) + "...";
@@ -317,7 +321,7 @@ function renderMarkdown(items) {
         if (btype === "thinking") continue;
 
         if (btype === "text") {
-          const text = (block.text || "").trim();
+          const text = unescapeHtml((block.text || "").trim());
           if (!text) continue;
           if (lines.length && lines[lines.length - 1] !== "") lines.push("");
           lines.push(text);
